@@ -9,14 +9,28 @@ on:
 jobs:
   post:
     runs-on: ubuntu-latest
+    env:
+      RSS_URL:         https://me.chasen.dev/feed.xml
+      IG_USER_ID:      ${{ secrets.IG_USER_ID }}
+      IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Debug environment
+      - name: Debug secret presence
         run: |
-          echo "IG_ACCESS_TOKEN set? ${IG_ACCESS_TOKEN:+yes}"
-          echo "IG_USER_ID      set? ${IG_USER_ID:+yes}"
+          if [ -z "$IG_ACCESS_TOKEN" ]; then
+            echo "::error::IG_ACCESS_TOKEN is empty"
+          else
+            echo "IG_ACCESS_TOKEN is present"
+          fi
+
+          if [ -z "$IG_USER_ID" ]; then
+            echo "::error::IG_USER_ID is empty"
+          else
+            echo "IG_USER_ID is present"
+          fi
+
           # show lengths (should be >0)
           echo -n "$IG_ACCESS_TOKEN" | wc -c | awk '{print "IG_ACCESS_TOKEN length:", $1}'
           echo -n "$IG_USER_ID"      | wc -c | awk '{print "IG_USER_ID length:     ", $1}'
@@ -27,10 +41,6 @@ jobs:
           python-version: '3.x'
 
       - name: Run posting script
-        env:
-          RSS_URL:         https://me.chasen.dev/feed.xml
-          IG_USER_ID:      ${{ secrets.IG_USER_ID }}
-          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
         run: |
           chmod +x .github/scripts/post_to_instagram.py
           .github/scripts/post_to_instagram.py
