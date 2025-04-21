@@ -42,8 +42,17 @@ for item in items:
             'access_token': ACCESS_TOKEN
         }
         url = f"https://graph.facebook.com/v17.0/{IG_USER_ID}/media"
-        resp = urlopen(Request(url, data=urlencode(params).encode()))
-        result = json.load(resp)
+        try:
+            resp = urlopen(Request(url, data=urlencode(params).encode()))
+            result = json.load(resp)
+        except Exception as e:
+            # debug: print Graph API’s JSON error
+            import sys, traceback
+            print("Error calling", url, "with params:", params, file=sys.stderr)
+            if hasattr(e, 'read'):
+                print("Response body:", e.read().decode(), file=sys.stderr)
+            traceback.print_exc()
+            raise
         creation_id = result['id']
 
         # 2) publish
